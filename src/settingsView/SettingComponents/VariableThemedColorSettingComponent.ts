@@ -171,7 +171,9 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		);
 		themeLightReset.setIcon('reset');
 		themeLightReset.onClick(() => {
-			pickrLight.setColor(this.setting['default-light']);
+			const resetColor = this.setting['default-light'];
+			pickrLight.setColor(resetColor);
+			themeLightWrapper.style.setProperty('--pcr-color', resetColor);
 			this.settingsManager.clearSetting(this.sectionId, idLight);
 		});
 		themeLightReset.setTooltip(resetTooltip);
@@ -222,7 +224,9 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		);
 		themeDarkReset.setIcon('reset');
 		themeDarkReset.onClick(() => {
-			pickrDark.setColor(this.setting['default-dark']);
+			const resetColor = this.setting['default-dark'];
+			pickrDark.setColor(resetColor);
+			themeDarkWrapper.style.setProperty('--pcr-color', resetColor);
 			this.settingsManager.clearSetting(this.sectionId, idDark);
 		});
 		themeDarkReset.setTooltip(resetTooltip);

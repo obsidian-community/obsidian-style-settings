@@ -117,7 +117,9 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 		this.settingEl.addExtraButton((b) => {
 			b.setIcon('reset');
 			b.onClick(() => {
-				pickr.setColor(this.setting.default || null);
+				const resetColor = this.setting.default || null;
+				pickr.setColor(resetColor);
+				pickerEl.style.setProperty('--pcr-color', resetColor || '');
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
 			});
 			b.setTooltip(resetTooltip);
