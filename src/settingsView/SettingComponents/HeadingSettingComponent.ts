@@ -164,9 +164,15 @@ export function buildSettingComponentTree(opts: {
 					) as HeadingSettingComponent;
 				}
 			} else if (newHeading.level === currentHeading.setting.level) {
-				currentHeading = currentHeading.parent.addSettingChild(
-					newHeading
-				) as HeadingSettingComponent;
+				if (currentHeading.setting.id === root.setting.id) {
+					currentHeading = currentHeading.addSettingChild(
+						newHeading
+					) as HeadingSettingComponent;
+				} else {
+					currentHeading = currentHeading.parent.addSettingChild(
+						newHeading
+					) as HeadingSettingComponent;
+				}
 			} else {
 				currentHeading = currentHeading.addSettingChild(
 					newHeading
