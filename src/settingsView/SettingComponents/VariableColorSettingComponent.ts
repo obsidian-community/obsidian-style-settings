@@ -62,10 +62,9 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 			createDescription(description, this.setting.default)
 		);
 
-		// fix, so that the color is correctly shown before the color picker has been opened
 		const defaultColor =
 			value !== undefined ? (value as string) : this.setting.default;
-		this.containerEl.style.setProperty('--pcr-color', defaultColor);
+		this.settingEl.controlEl.style.setProperty('--pcr-color', defaultColor);
 
 		const pickr = (this.pickr = Pickr.create(
 			getPickrSettings({
