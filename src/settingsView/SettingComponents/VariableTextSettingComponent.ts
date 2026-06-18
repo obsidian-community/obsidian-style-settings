@@ -53,7 +53,9 @@ export class VariableTextSettingComponent extends AbstractSettingComponent {
 				value = ``;
 			}
 
-			text.setValue(value ? value.toString() : this.setting.default);
+			text.setValue(
+				value !== undefined ? value.toString() : this.setting.default
+			);
 			text.onChange(onChange);
 
 			this.textComponent = text;
