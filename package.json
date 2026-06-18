@@ -6,8 +6,9 @@
   "scripts": {
     "typecheck": "tsc --noemit",
     "dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"lint": "eslint ./src",
+	"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+	"test": "vitest run",
+	"lint": "eslint ./src",
 		"lint:fix": "eslint ./src/**/*.ts --fix",
 		"prettier": "prettier --write \"./src/**/*.{ts,tsx}\"",
 		"clean": "yarn prettier && yarn lint:fix",
@@ -29,8 +30,9 @@
 		"obsidian": "latest",
 		"prettier": "3.0.2",
 		"tslib": "2.4.0",
-		"typescript": "4.7.4"
-  },
+		"typescript": "4.7.4",
+		"vitest": "^3.2.1"
+	},
   "dependencies": {
     "@simonwep/pickr": "https://github.com/nothingislost/pickr/archive/a17739f7aa1871b44da778cbb79ae76dae77d839.tar.gz",
     "@types/chroma-js": "^2.1.3",
