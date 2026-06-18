@@ -5,6 +5,7 @@ import {
 	getPickrSettings,
 	getTitle,
 	isValidDefaultColor,
+	isValidSavedColor,
 	onPickrCancel,
 } from '../../Utils';
 import { t } from '../../lang/helpers';
@@ -63,14 +64,18 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 		);
 
 		// fix, so that the color is correctly shown before the color picker has been opened
+		const savedColor = value !== undefined ? (value as string) : undefined;
 		const defaultColor =
-			value !== undefined ? (value as string) : this.setting.default;
-		this.containerEl.style.setProperty('--pcr-color', defaultColor);
+			savedColor && isValidSavedColor(savedColor)
+				? savedColor
+				: this.setting.default;
+		const pickerEl = this.settingEl.controlEl.createDiv({ cls: 'picker' });
+		pickerEl.style.setProperty('--pcr-color', defaultColor);
 
 		const pickr = (this.pickr = Pickr.create(
 			getPickrSettings({
 				isView: this.isView,
-				el: this.settingEl.controlEl.createDiv({ cls: 'picker' }),
+				el: pickerEl,
 				containerEl: this.containerEl,
 				swatches: swatches,
 				opacity: this.setting.opacity,

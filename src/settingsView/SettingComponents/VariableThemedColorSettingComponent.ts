@@ -4,6 +4,7 @@ import {
 	getPickrSettings,
 	getTitle,
 	isValidDefaultColor,
+	isValidSavedColor,
 	onPickrCancel,
 } from '../../Utils';
 import { t } from '../../lang/helpers';
@@ -48,6 +49,9 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		const idDark = `${this.setting.id}@@dark`;
 		const valueLight = this.settingsManager.getSetting(this.sectionId, idLight);
 		const valueDark = this.settingsManager.getSetting(this.sectionId, idDark);
+		const savedLight =
+			valueLight !== undefined ? valueLight.toString() : undefined;
+		const savedDark = valueDark !== undefined ? valueDark.toString() : undefined;
 		const swatchesLight: string[] = [];
 		const swatchesDark: string[] = [];
 
@@ -98,7 +102,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 			wrapper,
 			this.containerEl,
 			swatchesLight,
-			valueLight || '',
+			savedLight as string | undefined,
 			idLight
 		);
 
@@ -107,7 +111,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 			wrapper,
 			this.containerEl,
 			swatchesDark,
-			valueDark || '',
+			savedDark as string | undefined,
 			idDark
 		);
 
@@ -126,22 +130,22 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		wrapper: HTMLDivElement,
 		containerEl: HTMLElement,
 		swatchesLight: string[],
-		valueLight: number | string | boolean,
+		valueLight: string | undefined,
 		idLight: string
 	) {
 		const themeLightWrapper = wrapper.createDiv({ cls: 'theme-light' });
 
 		// fix, so that the color is correctly shown before the color picker has been opened
-		const defaultColor =
-			valueLight !== undefined
-				? (valueLight as string)
-				: this.setting['default-light'];
+		const savedColor =
+			valueLight && isValidSavedColor(valueLight) ? valueLight : undefined;
+		const defaultColor = savedColor || this.setting['default-light'];
 		themeLightWrapper.style.setProperty('--pcr-color', defaultColor);
+		const pickerEl = themeLightWrapper.createDiv({ cls: 'picker' });
 
 		const pickrLight = (this.pickrLight = Pickr.create(
 			getPickrSettings({
 				isView: this.isView,
-				el: themeLightWrapper.createDiv({ cls: 'picker' }),
+				el: pickerEl,
 				containerEl,
 				swatches: swatchesLight,
 				opacity: this.setting.opacity,
@@ -177,22 +181,22 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		wrapper: HTMLDivElement,
 		containerEl: HTMLElement,
 		swatchesDark: string[],
-		valueDark: number | string | boolean,
+		valueDark: string | undefined,
 		idDark: string
 	) {
 		const themeDarkWrapper = wrapper.createDiv({ cls: 'theme-dark' });
 
 		// fix, so that the color is correctly shown before the color picker has been opened
-		const defaultColor =
-			valueDark !== undefined
-				? (valueDark as string)
-				: this.setting['default-dark'];
+		const savedColor =
+			valueDark && isValidSavedColor(valueDark) ? valueDark : undefined;
+		const defaultColor = savedColor || this.setting['default-dark'];
 		themeDarkWrapper.style.setProperty('--pcr-color', defaultColor);
+		const pickerEl = themeDarkWrapper.createDiv({ cls: 'picker' });
 
 		const pickrDark = (this.pickrDark = Pickr.create(
 			getPickrSettings({
 				isView: this.isView,
-				el: themeDarkWrapper.createDiv({ cls: 'picker' }),
+				el: pickerEl,
 				containerEl,
 				swatches: swatchesDark,
 				opacity: this.setting.opacity,
