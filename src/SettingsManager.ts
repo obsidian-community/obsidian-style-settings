@@ -17,6 +17,7 @@ import {
 } from './SettingHandlers';
 import CSSSettingsPlugin from './main';
 import { SettingType } from './settingsView/SettingComponents/types';
+import { isValidSavedColor } from './Utils';
 import chroma from 'chroma-js';
 
 type VariableKV = Array<{ key: string; value: string }>;
@@ -283,8 +284,9 @@ function getCSSVariables(
 					seenGradientSections.add(sectionId);
 
 				const colorSetting = setting as VariableColor;
-				const color =
+				const rawColor =
 					value !== undefined ? value.toString() : colorSetting.default;
+				const color = rawColor && isValidSavedColor(rawColor) ? rawColor : undefined;
 
 				if (color) {
 					vars.push(
@@ -305,6 +307,10 @@ function getCSSVariables(
 					).forEach((kv) => {
 						gradientCandidates[kv.key] = kv.value;
 					});
+				} else if (rawColor) {
+					console.warn(
+						`Style Settings: invalid saved color "${rawColor}" for --${setting.id}; skipping.`
+					);
 				}
 
 				continue;
@@ -316,31 +322,38 @@ function getCSSVariables(
 				const colorSetting = setting as VariableThemedColor;
 				const colorKey =
 					modifier === 'light' ? 'default-light' : 'default-dark';
-				const color =
+				const rawColor =
 					value !== undefined ? value.toString() : colorSetting[colorKey];
+				const color = rawColor && isValidSavedColor(rawColor) ? rawColor : undefined;
 
-				(modifier === 'light' ? themedLight : themedDark).push(
-					...generateColorVariables(
+				if (color) {
+					(modifier === 'light' ? themedLight : themedDark).push(
+						...generateColorVariables(
+							setting.id,
+							colorSetting.format,
+							color,
+							colorSetting.opacity,
+							colorSetting['alt-format']
+						)
+					);
+
+					generateColorVariables(
 						setting.id,
-						colorSetting.format,
+						'rgb',
 						color,
-						colorSetting.opacity,
-						colorSetting['alt-format']
-					)
-				);
-
-				generateColorVariables(
-					setting.id,
-					'rgb',
-					color,
-					colorSetting.opacity
-				).forEach((kv) => {
-					if (modifier === 'light') {
-						gradientCandidatesLight[kv.key] = kv.value;
-					} else {
-						gradientCandidatesDark[kv.key] = kv.value;
-					}
-				});
+						colorSetting.opacity
+					).forEach((kv) => {
+						if (modifier === 'light') {
+							gradientCandidatesLight[kv.key] = kv.value;
+						} else {
+							gradientCandidatesDark[kv.key] = kv.value;
+						}
+					});
+				} else if (rawColor) {
+					console.warn(
+						`Style Settings: invalid saved color "${rawColor}" for --${setting.id}; skipping.`
+					);
+				}
 				continue;
 			}
 		}
