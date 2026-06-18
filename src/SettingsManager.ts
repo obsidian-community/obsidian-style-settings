@@ -33,14 +33,30 @@ export interface MappedSettings {
 	};
 }
 
-function generateColorVariables(
+export function safeRound(n: number): number {
+	return isNaN(n) ? 0 : Math.round(n);
+}
+
+export function safeNum(n: number): number {
+	return isNaN(n) ? 0 : n;
+}
+
+export function generateColorVariables(
 	key: string,
 	format: ColorFormat,
 	colorStr: string,
 	opacity: boolean | undefined,
 	altFormats: AltFormatList = []
 ): VariableKV {
-	const parsedColor = chroma(colorStr);
+	let parsedColor: ReturnType<typeof chroma>;
+	try {
+		parsedColor = chroma(colorStr);
+	} catch {
+		console.warn(
+			`Style Settings: could not parse color "${colorStr}" for variable --${key}; skipping.`
+		);
+		return [];
+	}
 	const alts = altFormats.reduce<VariableKV>((a, alt) => {
 		a.push(...generateColorVariables(alt.id, alt.format, colorStr, opacity));
 		return a;
@@ -59,20 +75,20 @@ function generateColorVariables(
 			];
 		case 'hsl-values': {
 			const hsl = parsedColor.hsl();
-			const alpha = opacity ? `,${parsedColor.alpha()}` : '';
-			const h = isNaN(hsl[0]) ? 0 : hsl[0];
+			const alpha = opacity ? `,${safeNum(parsedColor.alpha())}` : '';
+			const h = safeNum(hsl[0]);
 
 			return [
 				{
 					key,
-					value: `${h},${hsl[1] * 100}%,${hsl[2] * 100}%${alpha}`,
+					value: `${h},${safeNum(hsl[1]) * 100}%,${safeNum(hsl[2]) * 100}%${alpha}`,
 				},
 				...alts,
 			];
 		}
 		case 'hsl-split': {
 			const hsl = parsedColor.hsl();
-			const h = isNaN(hsl[0]) ? 0 : hsl[0];
+			const h = safeNum(hsl[0]);
 			const out = [
 				{
 					key: `${key}-h`,
@@ -80,11 +96,11 @@ function generateColorVariables(
 				},
 				{
 					key: `${key}-s`,
-					value: (hsl[1] * 100).toString() + '%',
+					value: (safeNum(hsl[1]) * 100).toString() + '%',
 				},
 				{
 					key: `${key}-l`,
-					value: (hsl[2] * 100).toString() + '%',
+					value: (safeNum(hsl[2]) * 100).toString() + '%',
 				},
 				...alts,
 			];
@@ -92,14 +108,14 @@ function generateColorVariables(
 			if (opacity)
 				out.push({
 					key: `${key}-a`,
-					value: parsedColor.alpha().toString(),
+					value: safeNum(parsedColor.alpha()).toString(),
 				});
 
 			return out;
 		}
 		case 'hsl-split-decimal': {
 			const hsl = parsedColor.hsl();
-			const h = isNaN(hsl[0]) ? 0 : hsl[0];
+			const h = safeNum(hsl[0]);
 			const out = [
 				{
 					key: `${key}-h`,
@@ -107,11 +123,11 @@ function generateColorVariables(
 				},
 				{
 					key: `${key}-s`,
-					value: hsl[1].toString(),
+					value: safeNum(hsl[1]).toString(),
 				},
 				{
 					key: `${key}-l`,
-					value: hsl[2].toString(),
+					value: safeNum(hsl[2]).toString(),
 				},
 				...alts,
 			];
@@ -119,7 +135,7 @@ function generateColorVariables(
 			if (opacity)
 				out.push({
 					key: `${key}-a`,
-					value: parsedColor.alpha().toString(),
+					value: safeNum(parsedColor.alpha()).toString(),
 				});
 
 			return out;
@@ -134,11 +150,13 @@ function generateColorVariables(
 			];
 		case 'rgb-values': {
 			const rgb = parsedColor.rgb();
-			const alpha = opacity ? `,${parsedColor.alpha()}` : '';
+			const alpha = opacity ? `, ${safeNum(parsedColor.alpha())}` : '';
 			return [
 				{
 					key,
-					value: `${rgb[0]},${rgb[1]},${rgb[2]}${alpha}`,
+					value: `${safeRound(rgb[0])}, ${safeRound(rgb[1])}, ${safeRound(
+						rgb[2]
+					)}${alpha}`,
 				},
 				...alts,
 			];
@@ -148,15 +166,15 @@ function generateColorVariables(
 			const out = [
 				{
 					key: `${key}-r`,
-					value: rgb[0].toString(),
+					value: safeRound(rgb[0]).toString(),
 				},
 				{
 					key: `${key}-g`,
-					value: rgb[1].toString(),
+					value: safeRound(rgb[1]).toString(),
 				},
 				{
 					key: `${key}-b`,
-					value: rgb[2].toString(),
+					value: safeRound(rgb[2]).toString(),
 				},
 				...alts,
 			];
@@ -164,7 +182,7 @@ function generateColorVariables(
 			if (opacity)
 				out.push({
 					key: `${key}-a`,
-					value: parsedColor.alpha().toString(),
+					value: safeNum(parsedColor.alpha()).toString(),
 				});
 
 			return out;
