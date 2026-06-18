@@ -85,15 +85,24 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 
 		pickr.on('save', (color: Pickr.HSVaColor, instance: Pickr) => {
 			if (!color) return;
+			const hex = color.toHEXA().toString();
+			if (!isValidSavedColor(hex)) {
+				console.warn(
+					`Style Settings: invalid saved color "${hex}" for --${this.setting.id}; skipping.`
+				);
+				instance.hide();
+				return;
+			}
 
 			this.settingsManager.setSetting(
 				this.sectionId,
 				this.setting.id,
-				color.toHEXA().toString()
+				hex
 			);
 
 			instance.hide();
-			instance.addSwatch(color.toHEXA().toString());
+			instance.addSwatch(hex);
+			pickerEl.style.setProperty('--pcr-color', hex);
 		});
 
 		pickr.on('show', () => {

@@ -161,7 +161,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		});
 
 		pickrLight.on('save', (color: Pickr.HSVaColor, instance: Pickr) =>
-			this.onSave(idLight, color, instance)
+			this.onSave(idLight, color, instance, themeLightWrapper)
 		);
 
 		pickrLight.on('cancel', onPickrCancel);
@@ -212,7 +212,7 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		});
 
 		pickrDark.on('save', (color: Pickr.HSVaColor, instance: Pickr) =>
-			this.onSave(idDark, color, instance)
+			this.onSave(idDark, color, instance, themeDarkWrapper)
 		);
 
 		pickrDark.on('cancel', onPickrCancel);
@@ -228,16 +228,30 @@ export class VariableThemedColorSettingComponent extends AbstractSettingComponen
 		themeDarkReset.setTooltip(resetTooltip);
 	}
 
-	private onSave(id: string, color: Pickr.HSVaColor, instance: Pickr) {
+	private onSave(
+		id: string,
+		color: Pickr.HSVaColor,
+		instance: Pickr,
+		wrapperEl: HTMLElement
+	) {
 		if (!color) return;
+		const hex = color.toHEXA().toString();
+		if (!isValidSavedColor(hex)) {
+			console.warn(
+				`Style Settings: invalid saved color "${hex}" for --${id}; skipping.`
+			);
+			instance.hide();
+			return;
+		}
 
 		this.settingsManager.setSetting(
 			this.sectionId,
 			id,
-			color.toHEXA().toString()
+			hex
 		);
 
 		instance.hide();
-		instance.addSwatch(color.toHEXA().toString());
+		instance.addSwatch(hex);
+		wrapperEl.style.setProperty('--pcr-color', hex);
 	}
 }
