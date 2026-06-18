@@ -156,6 +156,7 @@ export type CSSSetting =
 	| VariableNumberSlider
 	| VariableSelect
 	| VariableColor
+	| ColorGradient
 	| VariableThemedColor;
 
 export interface ParsedCSSSettings {
