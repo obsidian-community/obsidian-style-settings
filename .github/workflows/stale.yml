@@ -1,4 +1,4 @@
-name: Close stale question issues
+name: Close stale question issues and PRs
 
 on:
   schedule:
@@ -7,13 +7,14 @@ on:
 
 permissions:
   issues: write
-  pull-requests: none
+  pull-requests: write
 
 jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v9
+      - name: Stale question issues
+        uses: actions/stale@v9
         with:
           only-labels: 'question'
           days-before-issue-stale: 30
@@ -28,3 +29,20 @@ jobs:
           close-issue-message: >
             Closing due to inactivity. Feel free to reopen or file a new issue
             if this is still relevant.
+
+      - name: Stale PRs
+        uses: actions/stale@v9
+        with:
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
+          days-before-pr-stale: 60
+          days-before-pr-close: 14
+          exempt-draft-pr: true
+          stale-pr-label: 'stale'
+          stale-pr-message: >
+            This PR has had no activity for 60 days. It will be closed in 14
+            days if there's no further activity, rebase or comment to keep it
+            open.
+          close-pr-message: >
+            Closing due to inactivity. Feel free to reopen or resubmit if this
+            is still relevant.
