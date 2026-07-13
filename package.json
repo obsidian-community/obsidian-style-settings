@@ -27,6 +27,7 @@
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
 		"eslint": "8.47.0",
+		"vitest": "^3.2.1",
 		"obsidian": "latest",
 		"prettier": "3.0.2",
 		"tslib": "2.4.0",

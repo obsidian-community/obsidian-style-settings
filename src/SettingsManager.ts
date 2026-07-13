@@ -481,13 +481,15 @@ export class CSSSettingsManager {
 					document.body.classList.remove(setting.id);
 				} else if (setting.type === SettingType.CLASS_SELECT) {
 					const multiToggle = setting as ClassMultiToggle;
-					multiToggle.options.forEach((v) => {
-						if (typeof v === 'string') {
-							document.body.classList.remove(v);
-						} else {
-							document.body.classList.remove(v.value);
-						}
-					});
+					if (Array.isArray(multiToggle.options)) {
+						multiToggle.options.forEach((v) => {
+							if (typeof v === 'string') {
+								document.body.classList.remove(v);
+							} else {
+								document.body.classList.remove(v.value);
+							}
+						});
+					}
 				}
 			});
 		});
@@ -534,14 +536,16 @@ export class CSSSettingsManager {
 
 		settings.forEach((s) => {
 			this.config[s.id] = {};
-			s.settings.forEach((setting) => {
-				this.config[s.id][setting.id] = setting;
+			if (Array.isArray(s.settings)) {
+				s.settings.forEach((setting) => {
+					this.config[s.id][setting.id] = setting;
 
-				if (setting.type === SettingType.COLOR_GRADIENT) {
-					if (!this.gradients[s.id]) this.gradients[s.id] = [];
-					this.gradients[s.id].push(setting as ColorGradient);
-				}
-			});
+					if (setting.type === SettingType.COLOR_GRADIENT) {
+						if (!this.gradients[s.id]) this.gradients[s.id] = [];
+						this.gradients[s.id].push(setting as ColorGradient);
+					}
+				});
+			}
 		});
 
 		let pruned = false;
