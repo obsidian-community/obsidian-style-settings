@@ -5,6 +5,7 @@ import {
 	getPickrSettings,
 	getTitle,
 	isValidDefaultColor,
+	isValidSavedColor,
 	onPickrCancel,
 } from '../../Utils';
 import { t } from '../../lang/helpers';
@@ -63,14 +64,18 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 		);
 
 		// fix, so that the color is correctly shown before the color picker has been opened
+		const savedColor = value !== undefined ? (value as string) : undefined;
 		const defaultColor =
-			value !== undefined ? (value as string) : this.setting.default;
-		this.containerEl.style.setProperty('--pcr-color', defaultColor);
+			savedColor && isValidSavedColor(savedColor)
+				? savedColor
+				: this.setting.default;
+		const pickerEl = this.settingEl.controlEl.createDiv({ cls: 'picker' });
+		pickerEl.style.setProperty('--pcr-color', defaultColor);
 
 		const pickr = (this.pickr = Pickr.create(
 			getPickrSettings({
 				isView: this.isView,
-				el: this.settingEl.controlEl.createDiv({ cls: 'picker' }),
+				el: pickerEl,
 				containerEl: this.containerEl,
 				swatches: swatches,
 				opacity: this.setting.opacity,
@@ -80,15 +85,24 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 
 		pickr.on('save', (color: Pickr.HSVaColor, instance: Pickr) => {
 			if (!color) return;
+			const hex = color.toHEXA().toString();
+			if (!isValidSavedColor(hex)) {
+				console.warn(
+					`Style Settings: invalid saved color "${hex}" for --${this.setting.id}; skipping.`
+				);
+				instance.hide();
+				return;
+			}
 
 			this.settingsManager.setSetting(
 				this.sectionId,
 				this.setting.id,
-				color.toHEXA().toString()
+				hex
 			);
 
 			instance.hide();
-			instance.addSwatch(color.toHEXA().toString());
+			instance.addSwatch(hex);
+			pickerEl.style.setProperty('--pcr-color', hex);
 		});
 
 		pickr.on('show', () => {
@@ -103,7 +117,9 @@ export class VariableColorSettingComponent extends AbstractSettingComponent {
 		this.settingEl.addExtraButton((b) => {
 			b.setIcon('reset');
 			b.onClick(() => {
-				pickr.setColor(this.setting.default || null);
+				const resetColor = this.setting.default || null;
+				pickr.setColor(resetColor);
+				pickerEl.style.setProperty('--pcr-color', resetColor || '');
 				this.settingsManager.clearSetting(this.sectionId, this.setting.id);
 			});
 			b.setTooltip(resetTooltip);
