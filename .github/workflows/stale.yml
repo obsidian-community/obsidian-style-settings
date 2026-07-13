@@ -1,0 +1,30 @@
+name: Close stale question issues
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: none
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          only-labels: 'question'
+          days-before-issue-stale: 30
+          days-before-issue-close: 7
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-label: 'stale'
+          stale-issue-message: >
+            This issue is labeled "question" and has had no activity for 30 days.
+            It will be closed in 7 days if there's no further response. If it's
+            still relevant, just leave a comment.
+          close-issue-message: >
+            Closing due to inactivity. Feel free to reopen or file a new issue
+            if this is still relevant.
