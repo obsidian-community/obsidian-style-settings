@@ -1,4 +1,4 @@
-import { ClassToggle, ParsedCSSSettings } from './SettingHandlers';
+import { ClassToggle, CSSSetting, ParsedCSSSettings } from './SettingHandlers';
 import { CSSSettingsManager } from './SettingsManager';
 import {
 	ErrorList,
@@ -8,6 +8,10 @@ import {
 	settingRegExp,
 	SettingsSeachResource,
 } from './Utils';
+import {
+	validateAndNormalizeSetting,
+	ValidationWarning,
+} from './SettingsValidation';
 import './css/pickerOverrides.css';
 import './css/settings.css';
 import { CSSSettingsTab } from './settingsView/CSSSettingsTab';
@@ -205,21 +209,28 @@ export default class CSSSettingsPlugin extends Plugin {
 
 				try {
 					const str = match[1].trim();
-					const settings = this.parseCSSSettings(str, name);
+				const result = this.parseCSSSettings(str, name);
 
+				if (result && result.parsed) {
+					const { parsed, warnings } = result;
 					if (
-						settings &&
-						typeof settings === 'object' &&
-						settings.name &&
-						settings.id &&
-						settings.settings &&
-						settings.settings.length
+						parsed.name &&
+						parsed.id &&
+						parsed.settings &&
+						parsed.settings.length
 					) {
-						this.settingsList.push(settings);
+						this.settingsList.push(parsed);
+						for (const warning of warnings) {
+							this.errorList.push({
+								name,
+								error: `[${warning.code}] ${warning.message}`,
+							});
+						}
 					}
-				} catch (e) {
-					this.errorList.push({ name, error: `${e}` });
 				}
+			} catch (e) {
+				this.errorList.push({ name, error: `${e}` });
+			}
 			} while ((match = settingRegExp.exec(text)) !== null);
 		}
 	}
@@ -234,7 +245,7 @@ export default class CSSSettingsPlugin extends Plugin {
 	private parseCSSSettings(
 		str: string,
 		name: string
-	): ParsedCSSSettings | undefined {
+	): { parsed: ParsedCSSSettings; warnings: ValidationWarning[] } | undefined {
 		const indent = detectIndent(str);
 
 		const settings: ParsedCSSSettings = yaml.load(
@@ -247,7 +258,18 @@ export default class CSSSettingsPlugin extends Plugin {
 		if (!settings.settings) return undefined;
 
 		settings.settings = settings.settings.filter((setting) => setting);
-		return settings;
+
+		const validatedSettings: CSSSetting[] = [];
+		const warnings: ValidationWarning[] = [];
+
+		for (const setting of settings.settings) {
+			const result = validateAndNormalizeSetting(setting);
+			validatedSettings.push(result.setting);
+			warnings.push(...result.warnings);
+		}
+
+		settings.settings = validatedSettings;
+		return { parsed: settings, warnings };
 	}
 
 	private registerSettingCommands(): void {
