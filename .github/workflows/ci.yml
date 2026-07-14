@@ -1,14 +1,15 @@
-name: Release Obsidian plugin
+name: CI
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - '**'
+  pull_request:
 
 permissions: {}
 
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,19 +31,10 @@ jobs:
         continue-on-error: true
         run: yarn lint
 
-      - name: Typecheck
-        run: yarn typecheck
-
-      - name: Test
-        run: yarn test
-
-  release:
-    needs: ci
+  typecheck:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write
-      attestations: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,24 +48,25 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build plugin
-        run: yarn build
+      - name: Typecheck
+        run: yarn typecheck
 
-      - name: Attest build artifacts
-        uses: actions/attest-build-provenance@v4
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          subject-path: |
-            main.js
-            manifest.json
-            styles.css
+          node-version: '22'
+          cache: 'yarn'
 
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-          gh release create "$tag" \
-            --title="$tag" \
-            --notes-file="release-notes.md" \
-            main.js manifest.json styles.css
+      - name: Test
+        run: yarn test
